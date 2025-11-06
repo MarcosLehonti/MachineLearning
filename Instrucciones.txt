@@ -1,0 +1,27 @@
+Mutacion por la cual accede al backend de sprint boot para
+solicitar todos los triajes
+http://localhost:8080/api/triajes/todos
+
+////////////////////////////////////////////////////////////////////////////////////////
+para probar las mutacion en postman:
+post:http://localhost:5000/graphql
+///////////////////////////////////////////////////////////////////////////////////////
+
+//MUTACION PARA SINCRONIZAR LOS TRIAJES DE SPRINTBOOT EN PYTHON
+{
+  "query": "mutation { sincronizarTriajes { ok message } }"
+}
+
+//MUTACION PARA ENTRENAR EL MODELO (MACHINE LEARNING)
+{
+  "query": "mutation { entrenarModelo { ok message } }"
+}
+
+// MUTACION PARA MOSTRAR LOS RESULTADOS DEL ML : 
+{
+  "query": "mutation { obtenerTriajesRiesgo { ok message triajes } }"
+}
+///////////////////////////////////////////////////////////////////////////////////////
+-En primera nstanci ael modleo se entra con los datos de datos_entrenamiento.py
+-EL modelo se entrena cada dia con los nuevos registros de triajes (tuplas) + datos_entrenamiento.py
+
