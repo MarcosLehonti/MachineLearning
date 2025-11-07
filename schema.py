@@ -2,9 +2,11 @@ import graphene
 import requests
 from ml.model import predecir_paciente, entrenar_modelo_con_datos, TriajeML
 from db.connection import SessionLocal
+from ml.clustering import entrenar_clusters, predecir_cluster, agrupar_pacientes
+
 
 # --- QUERIES ---
-class Query(graphene.ObjectType):
+class BaseQuery(graphene.ObjectType):
     hello = graphene.String(default_value="✅ Microservicio ML operativo y conectado a la base de datos")
 
 
@@ -102,7 +104,7 @@ class ObtenerTriajesRiesgo(graphene.Mutation):
 
             lista_triajes = [
                 {
-                    "id_triaje": t.id_triaje,  # cambiamos aquí
+                    "id_triaje": t.id_triaje,
                     "nombre_paciente": t.nombre_paciente,
                     "temperatura": t.temperatura,
                     "frecuencia_cardiaca": t.frecuencia_cardiaca,
@@ -137,8 +139,75 @@ class EntrenarModelo(graphene.Mutation):
             return EntrenarModelo(ok=False, message=f"❌ Error al entrenar: {str(e)}")
 
 
+class EntrenarClusters(graphene.Mutation):
+    ok = graphene.Boolean()
+    message = graphene.String()
+
+    class Arguments:
+        num_clusters = graphene.Int(required=False, default_value=3)
+
+    def mutate(self, info, num_clusters):
+        try:
+            resultado = entrenar_clusters(num_clusters)
+            return EntrenarClusters(ok=True, message=resultado)
+        except Exception as e:
+            return EntrenarClusters(ok=False, message=f"❌ Error al entrenar clusters: {str(e)}")
+
+
+class PredecirCluster(graphene.Mutation):
+    ok = graphene.Boolean()
+    message = graphene.String()
+    cluster = graphene.Int()
+
+    class Arguments:
+        temperatura = graphene.Float(required=True)
+        frecuencia_cardiaca = graphene.Float(required=True)
+        frecuencia_respiratoria = graphene.Float(required=True)
+        saturacion_oxigeno = graphene.Float(required=True)
+        peso = graphene.Float(required=True)
+        estatura = graphene.Float(required=True)
+
+    def mutate(self, info, temperatura, frecuencia_cardiaca, frecuencia_respiratoria, saturacion_oxigeno, peso, estatura):
+        try:
+            datos = {
+                "temperatura": temperatura,
+                "frecuencia_cardiaca": frecuencia_cardiaca,
+                "frecuencia_respiratoria": frecuencia_respiratoria,
+                "saturacion_oxigeno": saturacion_oxigeno,
+                "peso": peso,
+                "estatura": estatura
+            }
+            resultado = predecir_cluster(datos)
+            return PredecirCluster(ok=True, message=resultado["mensaje"], cluster=resultado["cluster"])
+        except Exception as e:
+            return PredecirCluster(ok=False, message=f"❌ Error al predecir cluster: {str(e)}", cluster=-1)
+
+
+# --- NUEVA QUERY PARA VER TODOS LOS CLUSTERS ---
+class PacienteCluster(graphene.ObjectType):
+    id_triaje = graphene.Int()
+    cluster = graphene.Int()
+
+
+class Query(BaseQuery):  # 👈 Extiende la Query original sin eliminar 'hello'
+    obtener_clusters = graphene.List(PacienteCluster)
+
+    def resolve_obtener_clusters(self, info):
+        print("🔍 Ejecutando obtener_clusters...")
+        resultado = agrupar_pacientes()
+        print("Resultado:", resultado)  # 👈 Muestra lo que devuelve
+
+        if not resultado:
+            print("⚠️ agrupar_pacientes devolvió vacío o None")
+            return []
+        return [PacienteCluster(id_triaje=r["id_triaje"], cluster=r["cluster"]) for r in resultado]
+
 # --- SCHEMA GLOBAL ---
 class Mutation(graphene.ObjectType):
     sincronizar_triajes = SincronizarTriajes.Field()
     obtener_triajes_riesgo = ObtenerTriajesRiesgo.Field()
     entrenar_modelo = EntrenarModelo.Field()
+    entrenar_clusters = EntrenarClusters.Field()
+    predecir_cluster = PredecirCluster.Field()
+
+schema = graphene.Schema(query=Query, mutation=Mutation)

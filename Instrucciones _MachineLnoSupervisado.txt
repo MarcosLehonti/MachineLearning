@@ -1,0 +1,16 @@
+para probar las mutacion en postman:
+post:http://localhost:5000/graphql
+MUTACIONES:
+///////////ENTRENAR MODELO PARA EL MACHINE LEARNING NO SUPERVISADO////////////////
+{
+  "query": "mutation { entrenarClusters(numClusters: 3) { ok message } }"
+}
+
+//////////PARA AGRUPAR POR RIESGOS Y ANOMALIAS SEGUN LOS SIGNOS VITALES//////////
+cluster 0: pacientes con valores normales (bajo riesgo)
+cluster 1: pacientes con anomalías moderadas (riesgo medio)
+cluster 2: pacientes con valores críticos (alto riesgo)
+
+{
+  "query": "{ obtenerClusters { idTriaje cluster } }"
+}

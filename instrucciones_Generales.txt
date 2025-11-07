@@ -1,0 +1,34 @@
+Crear el entorno virtual:
+python -m venv venv
+Activar el entorno virtual:
+venv\Scripts\activate
+
+////////////////////////////////////////
+al ejecutar todo esto saldra algo similar: (venv) C:\ruta\del\proyecto>
+////////////////////////////////////////////////////////////////////////
+
+instalar dependencias: 
+pip install -r requirements.txt
+
+/////////////////////////////////////////////////////
+configuracion del .env:
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/machinelearning-supervisado
+SPRING_API=http://localhost:8080/api/triajes/todos
+PORT=5000
+
+///////////////////////////////////////////////////////////////////////////////////////
+entrenar los modelos:
+python train_model.py
+"al ejecutar el train_model.py se crearan model_cluster.pkl y model_infarto.pkl"
+//////////////////////////////////////////////////////////////////////////////////////
+correr el backend:
+python app.py
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+carpetas:
+ml-> clustering.py -> contiene el ml no supervisado
+ml-> model.py->  contiene del ml supervisado
+schema.py -> contiene las mutaciones de ambos ML
+train_model.py-> archivo que llama a ambos modelos para su modelos para su entrenamiento

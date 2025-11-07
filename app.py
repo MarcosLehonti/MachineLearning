@@ -57,8 +57,14 @@ def graphql_api():
         data.get("query"),
         variables=data.get("variables")
     )
-    return jsonify(result.data)
 
+    response = {}
+    if result.errors:
+        print("❌ Errores en GraphQL:", result.errors)
+        response["errors"] = [str(e) for e in result.errors]
+
+    response["data"] = result.data
+    return jsonify(response)
 
 # --- ENTRENAMIENTO AUTOMÁTICO DEL MODELO ML ---
 from apscheduler.schedulers.background import BackgroundScheduler
