@@ -37,7 +37,7 @@ class SincronizarTriajes(graphene.Mutation):
                 """
             }
 
-            response = requests.post("http://localhost:8080/graphql", json=graphql_query)
+            response = requests.post("https://backend-historialclinico-sofware2.onrender.com/graphql", json=graphql_query)
             data = response.json()["data"]["triajes"]
 
             if not data:

@@ -4,11 +4,15 @@ from schema import Query, Mutation
 import os
 from dotenv import load_dotenv
 from db.connection import init_db  # Agregado
+from flask_cors import CORS  # ✅ Importar CORS
 
 # Cargar variables de entorno
 load_dotenv()
 
 app = Flask(__name__)
+
+# ✅ Habilitar CORS para permitir solicitudes desde Angular (puedes ajustar la URL)
+CORS(app, resources={r"/graphql": {"origins": "http://localhost:4200"}})
 
 # Crear el esquema de GraphQL
 schema = Schema(query=Query, mutation=Mutation)
@@ -44,12 +48,10 @@ GRAPHIQL_TEMPLATE = """
 </html>
 """
 
-# Endpoint para GraphiQL (interfaz web)
 @app.route("/graphql", methods=["GET"])
 def graphiql_view():
     return render_template_string(GRAPHIQL_TEMPLATE)
 
-# Endpoint para consultas GraphQL
 @app.route("/graphql", methods=["POST"])
 def graphql_api():
     data = request.get_json()
@@ -66,7 +68,6 @@ def graphql_api():
     response["data"] = result.data
     return jsonify(response)
 
-# --- ENTRENAMIENTO AUTOMÁTICO DEL MODELO ML ---
 from apscheduler.schedulers.background import BackgroundScheduler
 from ml.model import entrenar_modelo_con_datos
 
@@ -78,18 +79,12 @@ def entrenar_modelo_diariamente():
     except Exception as e:
         print(f"❌ Error durante el entrenamiento automático: {str(e)}")
 
-# Inicializar el programador
 scheduler = BackgroundScheduler()
-# Ejecutar todos los días a las 2:00 AM
 scheduler.add_job(entrenar_modelo_diariamente, 'cron', hour=2, minute=0)
 scheduler.start()
 
-
-
-
-# ✅ Inicializar base de datos antes de arrancar el servidor
 if __name__ == "__main__":
-    init_db()  # 🔥 crea las tablas si no existen
+    init_db()
     port = int(os.getenv("PORT", 5000))
     print(f"🚀 Servidor ML corriendo en http://localhost:{port}/graphql")
     app.run(debug=True, port=port)
