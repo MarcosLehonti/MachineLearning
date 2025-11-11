@@ -1,2 +1,4 @@
 venv
-
+.kilocode
+__pycache__/
+*.pyc

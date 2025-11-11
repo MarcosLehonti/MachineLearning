@@ -1,0 +1,292 @@
+# Consultas GraphQL de Ejemplo
+
+## 🔬 Análisis de ECG Individual
+
+### Consulta Básica
+```graphql
+mutation {
+  analizarEcg(archivoImagen: "ecg_paciente_123.jpg", idPaciente: 123) {
+    ok
+    message
+    analisis {
+      diagnostico
+      descripcion
+      nivelRiesgo
+      probabilidad
+      frecuenciaCardiaca
+    }
+  }
+}
+```
+
+### Respuesta Esperada
+```json
+{
+  "data": {
+    "analizarEcg": {
+      "ok": true,
+      "message": "[OK] Análisis ECG completado para paciente 123",
+      "analisis": {
+        "diagnostico": "Normal",
+        "descripcion": "Ritmo sinusal normal. Ondas P, QRS y T dentro de parámetros normales.",
+        "nivelRiesgo": "Bajo",
+        "probabilidad": 65,
+        "frecuenciaCardiaca": 78
+      }
+    }
+  }
+}
+```
+
+## 📊 Historial de ECG
+
+### Consulta de Historial
+```graphql
+mutation {
+  obtenerHistoricoEcg(idPaciente: 456) {
+    ok
+    message
+    historico {
+      idAnalisis
+      fechaAnalisis
+      diagnostico
+      descripcion
+      nivelRiesgo
+      probabilidad
+      archivoImagen
+    }
+  }
+}
+```
+
+### Respuesta Esperada
+```json
+{
+  "data": {
+    "obtenerHistoricoEcg": {
+      "ok": true,
+      "message": "[OK] Historial ECG obtenido para paciente 456",
+      "historico": [
+        {
+          "idAnalisis": "ECG_456_001",
+          "fechaAnalisis": "2024-10-15T10:30:00",
+          "diagnostico": "Normal",
+          "nivelRiesgo": "Bajo",
+          "probabilidad": 72
+        },
+        {
+          "idAnalisis": "ECG_456_002", 
+          "fechaAnalisis": "2024-10-10T14:15:00",
+          "diagnostico": "Arritmia Supraventricular",
+          "nivelRiesgo": "Medio",
+          "probabilidad": 15
+        }
+      ]
+    }
+  }
+}
+```
+
+## 🤖 Entrenamiento de Modelos
+
+### Consulta de Entrenamiento
+```graphql
+mutation {
+  entrenarModeloEcg {
+    ok
+    message
+    resultado {
+      estado
+      precision
+      datasetSize
+      epocas
+      tiempoEntrenamiento
+      modeloVersion
+    }
+  }
+}
+```
+
+### Respuesta Esperada
+```json
+{
+  "data": {
+    "entrenarModeloEcg": {
+      "ok": true,
+      "message": "[OK] Modelo ECG entrenado exitosamente",
+      "resultado": {
+        "estado": "Completado",
+        "precision": 92.34,
+        "datasetSize": 25000,
+        "epocas": 50,
+        "tiempoEntrenamiento": "45 minutos",
+        "modeloVersion": "ECG-Mock-DeepLearning-v1.0"
+      }
+    }
+  }
+}
+```
+
+## 🔍 Consultas de Estado del Sistema
+
+### Health Check
+```graphql
+{
+  hello
+}
+```
+
+### Respuesta
+```json
+{
+  "data": {
+    "hello": "Microservicio ML operativo y conectado a la base de datos"
+  }
+}
+```
+
+## 📋 Consultas Combinadas
+
+### Análisis Completo
+```graphql
+mutation {
+  analisisCompleto: analizarEcg(archivoImagen: "ecg_urgent.jpg", idPaciente: 789) {
+    ok
+    message
+    analisis {
+      diagnostico
+      nivelRiesgo
+      probabilidad
+      frecuenciaCardiaca
+    }
+  }
+  historialCompleto: obtenerHistoricoEcg(idPaciente: 789) {
+    ok
+    message
+    historico {
+      diagnostico
+      nivelRiesgo
+      fechaAnalisis
+    }
+  }
+}
+```
+
+## ⚠️ Casos de Error
+
+### Error de Parámetros Faltantes
+```graphql
+mutation {
+  analizarEcg {
+    ok
+    message
+  }
+}
+```
+
+### Respuesta de Error
+```json
+{
+  "errors": [
+    {
+      "message": "Field 'analizarEcg' argument 'archivoImagen' of type 'String!' is required, but it was not provided.",
+      "locations": [{"line": 2, "column": 3}]
+    }
+  ]
+}
+```
+
+## 🎯 Casos de Prueba Específicos
+
+### Test: Paciente de Alto Riesgo
+```graphql
+mutation {
+  analizarEcg(archivoImagen: "ecg_critico_001.jpg", idPaciente: 999) {
+    ok
+    message
+    analisis {
+      diagnostico
+      nivelRiesgo
+      probabilidad
+    }
+  }
+}
+```
+
+### Test: Múltiples Pacientes
+```graphql
+# Paciente 1
+mutation {
+  p1: analizarEcg(archivoImagen: "ecg_p1.jpg", idPaciente: 1) {
+    ok message analisis { diagnostico nivelRiesgo }
+  }
+}
+
+# Paciente 2  
+mutation {
+  p2: analizarEcg(archivoImagen: "ecg_p2.jpg", idPaciente: 2) {
+    ok message analisis { diagnostico nivelRiesgo }
+  }
+}
+```
+
+## 🔄 Uso en Frontend
+
+### Ejemplo de Consulta desde JavaScript
+```javascript
+const query = `
+  mutation {
+    analizarEcg(archivoImagen: "ecg_test.jpg", idPaciente: 123) {
+      ok
+      message
+      analisis {
+        diagnostico
+        nivelRiesgo
+        probabilidad
+        frecuenciaCardiaca
+      }
+    }
+  }
+`;
+
+fetch('http://localhost:5000/graphql', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({ query })
+})
+.then(response => response.json())
+.then(data => {
+  if (data.data.analizarEcg.ok) {
+    console.log('Diagnóstico:', data.data.analizarEcg.analisis.diagnostico);
+  }
+});
+```
+
+## 📱 Formato de Datos para UI
+
+### Para Mostrar en Tabla
+```json
+{
+  "idPaciente": 123,
+  "nombreArchivo": "ecg_paciente_123.jpg",
+  "diagnostico": "Normal",
+  "nivelRiesgo": "Bajo",
+  "probabilidad": 65,
+  "frecuenciaCardiaca": 78,
+  "fechaAnalisis": "2024-11-11T00:10:00",
+  "estado": "Completado"
+}
+```
+
+### Para Alertas/Notificaciones
+```json
+{
+  "alerta": true,
+  "tipo": "CRÍTICO",
+  "mensaje": "Posible infarto agudo detectado",
+  "accion": "Revisión médica inmediata recomendada",
+  "paciente": 789,
+  "probabilidad": 89
+}
